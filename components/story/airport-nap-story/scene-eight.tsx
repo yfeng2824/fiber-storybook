@@ -47,13 +47,19 @@ export function SettlementScene({
             />
             <CueWatcher
               progress={progress}
+              cue="system.disconnect"
+              threshold={progressAtBeat(0.9, SCENE_EIGHT_TIMELINE_BEATS)}
+              resetThreshold={progressAtBeat(0.3, SCENE_EIGHT_TIMELINE_BEATS)}
+            />
+            <CueWatcher
+              progress={progress}
               cue="system.summary-chime"
               threshold={progressAtBeat(3, SCENE_EIGHT_TIMELINE_BEATS)}
               resetThreshold={progressAtBeat(2.5, SCENE_EIGHT_TIMELINE_BEATS)}
             />
 
             <div className={styles.surface}>
-              <h2 className={styles.title}>Fiber Behind the Scene</h2>
+              <h2 className={styles.title}>Fiber Behind the Scenes</h2>
 
               <div className={styles.network}>
                 <PicoAvatarNode

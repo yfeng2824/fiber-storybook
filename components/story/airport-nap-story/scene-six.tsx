@@ -43,7 +43,7 @@ export function MicropaymentsSceneContent({
   const touchStartYRef = useRef<number | null>(null);
   const autoReleaseFiredRef = useRef(false);
   const { playCue, setSoundscape } = useSound();
-  const roosterLeadMs = 1840;
+  const roosterLeadMs = 900;
   const sceneSixMaxOffset = sceneSixEndSeconds - sceneSixStartSeconds;
   const startThreshold = progressAtBeat(SCENE_SIX_CIRCLE_REVEAL_BEATS, SCENE_SIX_TIMELINE_BEATS);
   const resetThreshold = progressAtBeat(0.15, SCENE_SIX_TIMELINE_BEATS);
@@ -91,7 +91,7 @@ export function MicropaymentsSceneContent({
       }, roosterLeadMs + 520),
       window.setTimeout(() => {
         setIsReleased(true);
-      }, roosterLeadMs + 1420),
+      }, roosterLeadMs + 900),
     ];
   };
 

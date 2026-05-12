@@ -20,6 +20,7 @@ export type CueId =
   | "pod.door-open"
   | "pod.door-close"
   | "system.channel-active"
+  | "system.disconnect"
   | "system.shutdown"
   | "system.summary-chime";
 
@@ -32,6 +33,7 @@ type SoundContextValue = {
   soundscape: SoundscapeMode;
   toggle: () => void;
   playCue: (cue: CueId) => void;
+  suppressSceneCues: (durationMs?: number) => void;
   setSoundscape: (mode: SoundscapeMode) => void;
 };
 
@@ -103,6 +105,7 @@ function stopLoopAudio(audio: HTMLAudioElement | undefined, reset = true) {
 export function SoundProvider({ children }: { children: React.ReactNode }) {
   const contextRef = useRef<AudioContext | null>(null);
   const runningRef = useRef<RunningNodes>({});
+  const suppressSceneCuesUntilRef = useRef(0);
   const [enabled, setEnabled] = useState(true);
   const [ready, setReady] = useState(false);
   const [blocked, setBlocked] = useState(false);
@@ -276,6 +279,10 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      if (!cue.startsWith("ui.") && performance.now() < suppressSceneCuesUntilRef.current) {
+        return;
+      }
+
       if (cue === "scene.heart-pop") {
         playAudioCue("/sound/heart.mp3", 0.42);
         return;
@@ -303,6 +310,11 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
 
       if (cue === "system.channel-active") {
         playAudioCue("/sound/success.mp3", 0.46);
+        return;
+      }
+
+      if (cue === "system.disconnect") {
+        playAudioCue("/sound/disconnect.mp3", 0.5);
         return;
       }
 
@@ -348,6 +360,10 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
     [enabled],
   );
 
+  const suppressSceneCues = useCallback((durationMs = 1400) => {
+    suppressSceneCuesUntilRef.current = Math.max(suppressSceneCuesUntilRef.current, performance.now() + durationMs);
+  }, []);
+
   const toggle = useCallback(() => {
     setEnabled((previous) => {
       const next = !previous;
@@ -375,9 +391,10 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
       soundscape,
       toggle,
       playCue,
+      suppressSceneCues,
       setSoundscape,
     }),
-    [blocked, enabled, playCue, ready, setSoundscape, soundscape, toggle],
+    [blocked, enabled, playCue, ready, setSoundscape, soundscape, suppressSceneCues, toggle],
   );
 
   return <SoundContext.Provider value={value}>{children}</SoundContext.Provider>;

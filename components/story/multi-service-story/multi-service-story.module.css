@@ -53,6 +53,15 @@
   width: 100%;
 }
 
+.sceneThreeFooter {
+  width: min(100%, 960px);
+}
+
+.sceneThreeFooterPrimary {
+  white-space: nowrap;
+  font-size: clamp(18px, 1.7vw, 24px);
+}
+
 .hearts {
   position: absolute;
   inset: 0;
@@ -167,6 +176,14 @@
   .footer {
     gap: 12px;
     width: min(100%, 330px);
+  }
+
+  .sceneThreeFooter {
+    width: min(100%, 390px);
+  }
+
+  .sceneThreeFooterPrimary {
+    font-size: clamp(13px, 3.5vw, 18px);
   }
 
   .heartSmall {

@@ -13,7 +13,7 @@ const chapterItems = [
 
 export function ChapterBubbleMenu() {
   const [isOpen, setIsOpen] = useState(false);
-  const { playCue } = useSound();
+  const { playCue, suppressSceneCues } = useSound();
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -128,6 +128,7 @@ export function ChapterBubbleMenu() {
               tabIndex={isOpen ? 0 : -1}
               onMouseEnter={() => playCue("ui.pop")}
               onClick={() => {
+                suppressSceneCues();
                 setIsOpen(false);
                 window.setTimeout(() => scrollToStoryScene(item.id), 160);
               }}
