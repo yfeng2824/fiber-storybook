@@ -3,7 +3,7 @@
 ## Project Goal
 - This repo is a Next.js + React scroll-storybook that demonstrates real-world Fiber Network payment flows through Pico's airport journey.
 - Chapter 1 explains pay-by-use micropayments for a nap service.
-- Chapter 2 explains how one Fiber connection can streamline multiple airport services across different assets.
+- Chapter 2 explains how one Fiber Airport Pass session can streamline multiple airport services across CKB and USD.
 - The homepage `/` is the canonical story entry. Do not create or maintain a separate embedded-vs-standalone story architecture.
 - When a Figma node or frame is specified, treat Figma as the visual source of truth.
 
@@ -15,6 +15,14 @@
 - `components/story/shared/` contains cross-chapter primitives such as pinned scene shells, motion helpers, two-panel storyboards, phone summary panels, shared avatar/card pieces, and story navigation helpers.
 - `lib/story-content/` owns chapter scene data and timing config. Keep story copy and scene metadata there when practical.
 - `public/` stores storyboards, avatars, icons, fonts, and sound assets. Prefer existing local assets before adding new ones.
+
+## Chapter 2 Current Shape
+- Chapter 2 focuses on a simplified Fiber Airport Pass flow: Pico opens one pass channel, then uses luggage storage and massage chair through service channels the pass already supports.
+- The power-bank flow and old power-bank assets are not part of the current chapter. Do not reintroduce them unless the task explicitly asks for it.
+- Scene 5 is the reusable topology-board reference for opening/closing channel states. Scene 13 should keep that same visual language unless a new Figma design says otherwise.
+- Scenes 8 and 11 use a route-distribution board. Scene 12 uses the active-usage board with live meters, elapsed service times, and the `End all services` action.
+- Scene 14 is the Fiber Airport Pass receipt summary and should consume the settlement snapshot produced by Scene 12.
+- Chapter 2 payment constants, service durations, and conversion assumptions live in `lib/story-content/multi-service-model.ts`. Update that source of truth instead of duplicating numbers in components or docs.
 
 ## Implementation Guidelines
 - Keep implementation files under 600 lines whenever reasonably possible.
@@ -42,7 +50,15 @@
 - Use proximity-style scroll snap only as a soft settling aid; ScrollTrigger owns reveal timing and pinning.
 - Use the fixed top-left sound toggle as the global sound control.
 - Keep chapter background music and cue effects routed through the shared sound provider.
+- When chapter menu options jump to anchors, scene cue effects should be suppressed briefly while background music continues.
+- Play `public/sound/disconnect.mp3` when payment channels become closed in Chapter 1 scene 7 and Chapter 2 scene 13.
 - Avoid negative-margin overlap hacks such as `margin-bottom: -100dvh`.
+
+## Assets
+- Chapter assets are stored under `public/chapter1/` and `public/chapter2/`.
+- Prefer existing local assets before adding new ones.
+- Keep asset references aligned with scene definitions in `lib/story-content/`.
+- Do not reference removed assets or deleted old scene numbers.
 
 ## Verification
 - Run `npm run typecheck` after code changes.

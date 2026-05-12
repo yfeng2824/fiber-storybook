@@ -17,7 +17,7 @@ export function OpeningChannelBoard({ progress }: { progress: number }) {
 
   return (
     <div className={styles.surface}>
-      <h2 className={styles.title}>Fiber Behind the Scene</h2>
+      <h2 className={styles.title}>Fiber Behind the Scenes</h2>
 
       <div className={styles.network}>
         <PicoAvatarNode

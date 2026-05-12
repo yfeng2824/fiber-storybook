@@ -81,7 +81,7 @@ export function SceneSevenPreviewSurface({
               className: styles.summaryCardPaid,
             },
             {
-              label: "Unused returned",
+              label: "Unused balance returned",
               value: `${formatCkb(remaining)} CKB`,
               className: styles.summaryCardReturned,
             },

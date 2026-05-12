@@ -19,11 +19,14 @@ export function BareAvatar({ imageSrc, imageAlt }: { imageSrc: string; imageAlt:
   );
 }
 
-export function NodeStatus() {
+export function NodeStatus({ channelCountLabel }: { channelCountLabel?: string }) {
   return (
-    <div className={channelStyles.nodeStatus}>
-      <span className={channelStyles.nodeDot} />
-      <span>Online</span>
+    <div className={channelStyles.nodeStatusStack}>
+      <div className={channelStyles.nodeStatus}>
+        <span className={channelStyles.nodeDot} />
+        <span>Online</span>
+      </div>
+      {channelCountLabel ? <p className={channelStyles.channelCount}>{channelCountLabel}</p> : null}
     </div>
   );
 }

@@ -25,6 +25,7 @@ import {
   MultiServiceChannelBoard,
   MultiServiceChannelScene,
   MultiServicePaymentRouteScene,
+  MultiServiceRouteDistributionBoard,
   MultiServiceSettlementScene,
 } from "./multi-service-channel-scene";
 import { MultiServiceFinalSummaryScene } from "./multi-service-final-summary-scene";
@@ -35,9 +36,8 @@ const MULTI_SERVICE_SCENE_TWO_BEATS = 5;
 const ACTIVE_SCENE_GATE_PROGRESS = 0.995;
 const CHAPTER_TWO_SCENE_TWO_STORYBOARDS = [
   { src: "/chapter2/c2-storyboard-2-start.svg", alt: "Airport service choices before Pico compares approvals." },
-  { src: "/chapter2/c2-storyboard-2-luggage.svg", alt: "Luggage storage service requiring approval." },
-  { src: "/chapter2/c2-storyboard-2-power-bank.svg", alt: "Power bank service requiring approval." },
-  { src: "/chapter2/c2-storyboard-2-massage.svg", alt: "Massage chair service requiring approval." },
+  { src: "/chapter2/c2-storyboard-2-mid.svg", alt: "Airport service choices while Pico compares repeated approvals." },
+  { src: "/chapter2/c2-storyboard-2-end.svg", alt: "Airport service choices after Pico sees repeated approvals." },
 ] as const;
 const CHAPTER_TWO_HEARTS = [
   { positionClassName: "heartLeftHigh", sizeClassName: "heartSmall", delay: 0.02, left: 16, top: 29 },
@@ -130,7 +130,7 @@ export function MultiServiceStory({
         scene={scenes[8]}
         activeSceneId={activeSceneId}
         onActiveChange={onActiveChange}
-        footerLines={0}
+        footerLines={1}
       />
       <MultiServiceActionScene
         scene={scenes[9]}
@@ -138,56 +138,29 @@ export function MultiServiceStory({
         onActiveChange={onActiveChange}
         assets={{
           leftStart: "/chapter2/c2-storyboard-10-left-start.svg",
-          leftStartAlt: "Power bank phone screen before Pico confirms.",
-          leftEnd: "/chapter2/c2-storyboard-10-left-end.svg",
-          leftEndAlt: "Power bank phone screen after Pico confirms.",
-          rightStart: "/chapter2/c2-storyboard-10-right-start.svg",
-          rightStartAlt: "Power bank service panel before payment completes.",
-          rightEnd: "/chapter2/c2-storyboard-10-right-end.svg",
-          rightEndAlt: "Power bank service panel after payment completes.",
-        }}
-      />
-      <MultiServicePaymentRouteScene
-        scene={scenes[10]}
-        activeSceneId={activeSceneId}
-        onActiveChange={onActiveChange}
-        routeVariant="power-bank"
-      />
-      <MultiServiceTextScene
-        scene={scenes[11]}
-        activeSceneId={activeSceneId}
-        onActiveChange={onActiveChange}
-        footerLines={0}
-      />
-      <MultiServiceActionScene
-        scene={scenes[12]}
-        activeSceneId={activeSceneId}
-        onActiveChange={onActiveChange}
-        assets={{
-          leftStart: "/chapter2/c2-storyboard-13-left-start.svg",
           leftStartAlt: "Massage chair phone screen before Pico confirms.",
-          leftEnd: "/chapter2/c2-storyboard-13-left-end.svg",
+          leftEnd: "/chapter2/c2-storyboard-10-left-end.svg",
           leftEndAlt: "Massage chair phone screen after Pico confirms.",
-          rightStart: "/chapter2/c2-storyboard-13-right.svg",
+          rightStart: "/chapter2/c2-storyboard-10-right.svg",
           rightStartAlt: "Massage chair service confirmation panel.",
         }}
       />
       <MultiServiceRouteActiveSection
-        routeScene={scenes[13]}
-        activeScene={scenes[14]}
-        settlementScene={scenes[15]}
+        routeScene={scenes[10]}
+        activeScene={scenes[11]}
+        settlementScene={scenes[12]}
         activeSceneId={activeSceneId}
         onActiveChange={onActiveChange}
         onSettlementChange={setSettlementSnapshot}
       />
       <MultiServiceSettlementScene
-        scene={scenes[15]}
+        scene={scenes[12]}
         activeSceneId={activeSceneId}
         onActiveChange={onActiveChange}
         settlement={settlementSnapshot}
       />
       <MultiServiceFinalSummaryScene
-        scene={scenes[16]}
+        scene={scenes[13]}
         activeSceneId={activeSceneId}
         onActiveChange={onActiveChange}
         settlement={settlementSnapshot}
@@ -296,7 +269,11 @@ function MultiServiceRouteActiveSection({
       <div className="story-stage" style={{ background: "var(--color-bg-yellow)" }}>
         <div className={styles.technicalTransitionStage}>
           <div className={styles.technicalBaseLayer}>
-            <MultiServiceChannelBoard progress={routeProgress} variant="massage-route" caption={routeScene.copy.body} />
+            <MultiServiceRouteDistributionBoard
+              routeVariant="massage"
+              progress={routeProgress}
+              isActive={activeSceneId === routeScene.id || (routeProgress > 0.04 && routeProgress < 0.98)}
+            />
           </div>
 
           <div
@@ -364,9 +341,8 @@ function MultiServiceTextScene({
         const footerOneReveal = easeOutCubic(beatProgress(progress, scene.id === "chapter-2-scene-2" ? 4 : 2, 1, totalBeats));
         const footerTwoReveal = easeOutCubic(beatProgress(progress, 3, 1, totalBeats));
         const heartsProgress = beatProgress(progress, 3, 1, totalBeats);
-        const sceneTwoLuggageReveal = easeOutCubic(beatProgress(progress, 2, 0.45, totalBeats));
-        const sceneTwoPowerReveal = easeOutCubic(beatProgress(progress, 2.65, 0.45, totalBeats));
-        const sceneTwoMassageReveal = easeOutCubic(beatProgress(progress, 3.3, 0.45, totalBeats));
+        const sceneTwoMidReveal = easeOutCubic(beatProgress(progress, 2, 0.55, totalBeats));
+        const sceneTwoEndReveal = easeOutCubic(beatProgress(progress, 3.3, 0.55, totalBeats));
 
         return (
           <>
@@ -402,9 +378,8 @@ function MultiServiceTextScene({
               sequenceImages={
                 scene.id === "chapter-2-scene-2"
                   ? [
-                      { ...CHAPTER_TWO_SCENE_TWO_STORYBOARDS[1], opacity: sceneTwoLuggageReveal },
-                      { ...CHAPTER_TWO_SCENE_TWO_STORYBOARDS[2], opacity: sceneTwoPowerReveal },
-                      { ...CHAPTER_TWO_SCENE_TWO_STORYBOARDS[3], opacity: sceneTwoMassageReveal },
+                      { ...CHAPTER_TWO_SCENE_TWO_STORYBOARDS[1], opacity: sceneTwoMidReveal },
+                      { ...CHAPTER_TWO_SCENE_TWO_STORYBOARDS[2], opacity: sceneTwoEndReveal },
                     ]
                   : undefined
               }
@@ -481,8 +456,10 @@ function MultiServiceSceneFrame({
       </div>
 
       {footerLines > 0 ? (
-        <div className={styles.footer}>
-          <p style={footerLineOneStyle}>{scene.copy.body}</p>
+        <div className={[styles.footer, scene.id === "chapter-2-scene-3" ? styles.sceneThreeFooter : undefined].filter(Boolean).join(" ")}>
+          <p className={scene.id === "chapter-2-scene-3" ? styles.sceneThreeFooterPrimary : undefined} style={footerLineOneStyle}>
+            {scene.copy.body}
+          </p>
           {footerLines === 2 ? <p style={footerLineTwoStyle}>{scene.copy.caption}</p> : null}
         </div>
       ) : null}

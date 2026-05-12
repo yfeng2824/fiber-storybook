@@ -92,7 +92,7 @@
 .phoneScreen {
   position: absolute;
   left: 5%;
-  top: 11.5%;
+  top: 11.8%;
   width: 90%;
   height: 88.5%;
   border-radius: 0.8cqw 0.8cqw 0 0;
@@ -102,9 +102,9 @@
 .passBadge {
   position: absolute;
   left: 50%;
-  top: 6.6%;
-  width: 14.2cqw;
-  height: 14.2cqw;
+  top: 5.2%;
+  width: 16cqw;
+  height: 16cqw;
   transform: translateX(-50%);
 }
 
@@ -120,7 +120,7 @@
 .passTitle {
   position: absolute;
   left: 50%;
-  top: 23.6%;
+  top: 22%;
   width: 84%;
   margin: 0;
   transform: translateX(-50%);
@@ -147,11 +147,11 @@
 }
 
 .summaryCardPaid {
-  top: 31%;
+  top: 31.2%;
 }
 
 .summaryCardReturned {
-  top: 43.8%;
+  top: 45.8%;
 }
 
 .summaryLabel {
@@ -169,25 +169,32 @@
 .serviceSummary {
   position: absolute;
   left: 8%;
-  top: 56.4%;
+  top: 59.4%;
   width: 84%;
 }
 
-.serviceSummary h4 {
-  margin: 0 0 3.4cqw;
-  font-size: 3.8cqw;
+.serviceHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr) minmax(0, 0.8fr);
+  gap: 1.4cqw;
+  margin-bottom: 3cqw;
+  font-size: 3.2cqw;
   line-height: 1;
   font-weight: 700;
 }
 
+.serviceHeader span:nth-child(3) {
+  text-align: right;
+}
+
 .serviceRows {
   display: grid;
-  gap: 2cqw;
+  gap: 1.6cqw;
 }
 
 .serviceRow {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.95fr) minmax(0, 0.9fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr) minmax(0, 0.8fr);
   gap: 1.4cqw;
   align-items: start;
   font-size: 2.6cqw;
@@ -203,10 +210,19 @@
   text-align: right;
 }
 
+.conversionNote {
+  margin: 2.8cqw 0 0;
+  font-size: 2.8cqw;
+  line-height: 1;
+  color: var(--color-text-secondary);
+  text-align: center;
+  white-space: nowrap;
+}
+
 .doneButton {
   position: absolute;
   left: 8%;
-  bottom: 3%;
+  bottom: 3.2%;
   width: 84%;
   min-height: 10.8cqw;
   border: 0.6cqw solid var(--color-bg-inverse);

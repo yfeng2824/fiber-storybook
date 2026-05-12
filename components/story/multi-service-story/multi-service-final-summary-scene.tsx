@@ -16,20 +16,10 @@ import styles from "./multi-service-final-summary.module.css";
 
 const FINAL_SUMMARY_TIMELINE_BEATS = 4;
 
-const SUMMARY_ROWS = [
-  {
-    key: "luggage",
-    label: "Luggage",
-  },
-  {
-    key: "power",
-    label: "Power bank",
-  },
-  {
-    key: "massage",
-    label: "Massage",
-  },
-] as const;
+const SUMMARY_ROWS = multiServiceServices.map((service) => ({
+  key: service.key,
+  label: service.name === "Luggage storage" ? "Luggage (CKB)" : "Massage (USD)",
+}));
 const serviceCkbRates = multiServiceServices.reduce<Record<MultiServiceKey, number>>(
   (rates, service) => ({
     ...rates,
@@ -77,9 +67,9 @@ export function MultiServiceFinalSummaryScene({
                 transform: `translateY(${-80 * (1 - leftReveal)}px)`,
               }}
             >
-              <Image src="/chapter2/c2-storyboard-17-left-start.svg" alt={scene.assetAlt} fill className={styles.image} />
+              <Image src="/chapter2/c2-storyboard-14-left-start.svg" alt={scene.assetAlt} fill className={styles.image} />
               <Image
-                src="/chapter2/c2-storyboard-17-left-end.svg"
+                src="/chapter2/c2-storyboard-14-left-end.svg"
                 alt=""
                 fill
                 className={styles.image}
@@ -134,14 +124,18 @@ function AirportPassPhone({ settlement }: { settlement: MultiServiceSettlementSn
           className: styles.summaryCardPaid,
         },
         {
-          label: "Unused returned",
+          label: "Unused balance returned",
           value: `${formatCkb(settlement.remaining)} CKB`,
           className: styles.summaryCardReturned,
         },
       ]}
     >
       <div className={styles.serviceSummary}>
-        <h4>Summary</h4>
+        <div className={styles.serviceHeader}>
+          <span>Service</span>
+          <span>Time</span>
+          <span>Paid</span>
+        </div>
         <div className={styles.serviceRows}>
           {SUMMARY_ROWS.map((row) => {
             const seconds = settlement.serviceSeconds[row.key];
@@ -156,6 +150,7 @@ function AirportPassPhone({ settlement }: { settlement: MultiServiceSettlementSn
             );
           })}
         </div>
+        <p className={styles.conversionNote}>1 CKB ≈ 0.1 USD</p>
       </div>
     </PhoneSummaryPanel>
   );

@@ -25,14 +25,13 @@ This chapter demonstrates:
 
 ### Chapter 2: Airport Pass — One Connection, Multiple Services
 
-Pico wants several small airport services (luggage storage, power bank, massage chair) before boarding. Instead of approving each service separately with different assets, Pico uses a single **Fiber Airport Pass**.
+Pico wants several small airport services before boarding. Instead of approving each service separately, Pico opens one channel to a **Fiber Airport Pass**, then uses luggage storage and a USD-priced massage chair through routes the pass already supports.
 
 This chapter demonstrates:
 
-- **One Fiber connection coordinating multiple services**
-- **Multi-asset support** — CKB, SUDT, and USD through the same pass
-- **Automatic asset routing** — Fiber handles the asset match behind the scenes
-- **Unified settlement** — one deposit, one approval, one final summary
+- **One Fiber connection coordinating multiple services** — Pico approves one pass channel instead of opening a channel to every service
+- **Multi-asset routing** — Pico can pay from CKB while the massage chair receives USD
+- **Unified settlement** — Pico's pass channel closes, paid usage is settled, and unused CKB is returned
 
 ---
 
@@ -66,7 +65,7 @@ fiber-storybook/
 │   ├── hero/                     # Hero section assets
 │   ├── icon/                     # UI icons
 │   ├── shared/                   # Shared visual assets
-│   └── sound/                    # Ambient sound effects
+│   └── sound/                    # Background music and cue effects
 │
 ├── next.config.ts                # Next.js configuration
 ├── package.json
@@ -82,6 +81,7 @@ fiber-storybook/
 | `components/story/fiber-storybook.tsx` | Top-level container: hero, chapters, sound, navigation, progress |
 | `lib/story-content/airport-nap.ts` | Chapter 1 scene definitions and copy |
 | `lib/story-content/multi-service.ts` | Chapter 2 scene definitions and copy |
+| `lib/story-content/multi-service-model.ts` | Chapter 2 payment totals, service durations, and CKB/USD conversion math |
 | `lib/story-content/types.ts` | Shared TypeScript types for scenes, chapters, and payment state |
 | `components/story/shared/` | Reusable primitives: scene shells, two-panel storyboards, motion helpers |
 
