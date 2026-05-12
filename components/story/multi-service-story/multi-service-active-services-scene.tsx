@@ -11,7 +11,6 @@ import {
   type MultiServiceKey,
   type SceneConfig,
 } from "@/lib/story-content";
-import { SceneShell } from "../shared";
 import { MultiServiceChannelBoard } from "./multi-service-channel-scene";
 import channelStyles from "./multi-service-channel.module.css";
 
@@ -21,40 +20,6 @@ export type MultiServiceSettlementSnapshot = {
   total: number;
   serviceSeconds: Record<MultiServiceKey, number>;
 };
-
-export function MultiServiceActiveServicesScene({
-  scene,
-  activeSceneId,
-  onActiveChange,
-  onSettlementChange,
-  onRelease,
-}: {
-  scene: SceneConfig;
-  activeSceneId: string;
-  onActiveChange: (id: string) => void;
-  onSettlementChange?: (snapshot: MultiServiceSettlementSnapshot) => void;
-  onRelease?: () => void;
-}) {
-  return (
-    <SceneShell
-      scene={scene}
-      activeSceneId={activeSceneId}
-      onActiveChange={onActiveChange}
-      stageStyle={() => ({ background: "var(--color-bg-inverse)" })}
-    >
-      {(progress) => (
-        <ActiveServicesBoard
-          scene={scene}
-          progress={progress}
-          isSceneActive={activeSceneId === scene.id}
-          allowVisibilityActivation
-          onSettlementChange={onSettlementChange}
-          onRelease={onRelease}
-        />
-      )}
-    </SceneShell>
-  );
-}
 
 function ActiveServicesBoard({
   scene,

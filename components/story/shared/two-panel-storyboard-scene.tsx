@@ -28,6 +28,7 @@ export function TwoPanelStoryboardScene({
   assets,
   stageStyle,
   leftSwapCue = "ui.tap-ding",
+  rightSwapCue,
 }: {
   scene: SceneConfig;
   activeSceneId: string;
@@ -35,6 +36,7 @@ export function TwoPanelStoryboardScene({
   assets: TwoPanelStoryboardAssets;
   stageStyle?: (progress: number) => CSSProperties;
   leftSwapCue?: CueId;
+  rightSwapCue?: CueId;
 }) {
   return (
     <SceneShell
@@ -77,6 +79,14 @@ export function TwoPanelStoryboardScene({
               threshold={progressAtBeat(2, TWO_PANEL_BEATS)}
               resetThreshold={progressAtBeat(1.5, TWO_PANEL_BEATS)}
             />
+            {rightSwapCue && assets.rightEnd ? (
+              <CueWatcher
+                progress={progress}
+                cue={rightSwapCue}
+                threshold={progressAtBeat(3, TWO_PANEL_BEATS)}
+                resetThreshold={progressAtBeat(2.5, TWO_PANEL_BEATS)}
+              />
+            ) : null}
 
             <div className={`${styles.panel} ${styles.leftPanel}`} style={leftStyle}>
               <div className={styles.panelStack}>

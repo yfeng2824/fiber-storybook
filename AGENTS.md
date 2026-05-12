@@ -3,7 +3,7 @@
 ## Project Goal
 - This repo is a Next.js + React scroll-storybook that demonstrates real-world Fiber Network payment flows through Pico's airport journey.
 - Chapter 1 explains pay-by-use micropayments for a nap service.
-- Chapter 2 explains how one Fiber Airport Pass session can streamline multiple airport services across CKB and USD.
+- Chapter 2 explains how one Fiber Airport Pass session can streamline multiple airport services across CKB and BTC-sats.
 - The homepage `/` is the canonical story entry. Do not create or maintain a separate embedded-vs-standalone story architecture.
 - When a Figma node or frame is specified, treat Figma as the visual source of truth.
 
@@ -17,7 +17,8 @@
 - `public/` stores storyboards, avatars, icons, fonts, and sound assets. Prefer existing local assets before adding new ones.
 
 ## Chapter 2 Current Shape
-- Chapter 2 focuses on a simplified Fiber Airport Pass flow: Pico opens one pass channel, then uses luggage storage and massage chair through service channels the pass already supports.
+- Chapter 2 focuses on a simplified Fiber Airport Pass flow: Pico opens one pass channel, then uses luggage storage and massage chair through service routes the pass already supports.
+- The massage-chair route uses sats. Frame the Fiber Airport Pass as a hub node that supports CKB and sats routes; in demo math, use `1 CKB = 10 sats`.
 - The power-bank flow and old power-bank assets are not part of the current chapter. Do not reintroduce them unless the task explicitly asks for it.
 - Scene 5 is the reusable topology-board reference for opening/closing channel states. Scene 13 should keep that same visual language unless a new Figma design says otherwise.
 - Scenes 8 and 11 use a route-distribution board. Scene 12 uses the active-usage board with live meters, elapsed service times, and the `End all services` action.
