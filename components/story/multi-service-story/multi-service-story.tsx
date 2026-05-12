@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { useSound } from "@/components/providers/sound-provider";
+import { useSound, type CueId } from "@/components/providers/sound-provider";
 import { multiServiceDefaultSettlement, type SceneConfig } from "@/lib/story-content";
 import {
   beatProgress,
@@ -110,6 +110,7 @@ export function MultiServiceStory({
         scene={scenes[6]}
         activeSceneId={activeSceneId}
         onActiveChange={onActiveChange}
+        rightSwapCue="pod.door-close"
         assets={{
           leftStart: "/chapter2/c2-storyboard-7-left-start.svg",
           leftStartAlt: "Luggage storage phone screen before Pico confirms.",
@@ -499,6 +500,7 @@ function MultiServiceActionScene(props: {
   activeSceneId: string;
   onActiveChange: (id: string) => void;
   assets: TwoPanelStoryboardAssets;
+  rightSwapCue?: CueId;
 }) {
   return <TwoPanelStoryboardScene {...props} leftSwapCue="ui.pop" />;
 }

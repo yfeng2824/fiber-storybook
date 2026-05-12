@@ -1,13 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useSound } from "@/components/providers/sound-provider";
 import type { SceneConfig } from "@/lib/story-content";
-import {
-  MULTI_SERVICE_TOTAL_CKB,
-  multiServiceServices,
-  type MultiServiceKey,
-} from "@/lib/story-content";
+import { multiServiceServices, type MultiServiceKey } from "@/lib/story-content";
 import { beatProgress, CueWatcher, cx, easeInOutSine, progressAtBeat, SceneShell } from "../shared";
 import { formatCkb } from "../shared";
 import type { MultiServiceSettlementSnapshot } from "./multi-service-active-services-scene";
@@ -20,7 +16,7 @@ const MULTI_SERVICE_SETTLEMENT_SCENE_BEATS = 4;
 const ROUTE_DISTRIBUTION_TICK_MS = 1000;
 
 type PaymentRouteVariant = "luggage" | "massage";
-type ChannelBoardVariant = "opening" | "payment-route" | "massage-route" | "settlement" | "active-services";
+type ChannelBoardVariant = "opening" | "settlement" | "active-services";
 type RouteDistributionConfig = {
   serviceName: string;
   serviceAvatar: string;
@@ -49,8 +45,15 @@ type ActiveServicesState = {
 };
 const serviceAccepts: Record<MultiServiceKey, string> = {
   luggage: "Accept: CKB",
-  massage: "Accept: USD",
+  massage: "Accept: sats",
 };
+const fiberPassMeta = (
+  <>
+    Hub node
+    <br />
+    Supports CKB & sats
+  </>
+);
 const luggageRouteDistribution: RouteDistributionConfig = {
   serviceName: "Luggage storage",
   serviceAvatar: "/chapter2/luggage-avatar.png",
@@ -74,25 +77,25 @@ const massageRouteDistribution: RouteDistributionConfig = {
   serviceName: "Massage chair",
   serviceAvatar: "/chapter2/massage-avatar.png",
   serviceAvatarAlt: "Massage chair avatar",
-  serviceAccepts: "Accept: USD",
+  serviceAccepts: "Accept: sats",
   sourceDistributionLabel: "Pico channel distribution",
   sourceChannelLabel: "Pico channel",
   sourceTotal: 1000,
   sourceUnit: "CKB",
   sourceInitialPaid: 200,
   sourceRatePerSecond: 1.1,
-  targetDistributionLabel: "Massage channel distribution",
-  targetChannelLabel: "Massage channel",
-  targetTotal: 1000,
-  targetUnit: "USD",
+  targetDistributionLabel: "Sats route distribution",
+  targetChannelLabel: "Massage (Lightning route)",
+  targetTotal: 100000,
+  targetUnit: "sats",
   targetInitialPaid: 0,
-  targetRatePerSecond: 0.1,
-  caption: "Pico pays with what he has. The service receives what it accepts.",
+  targetRatePerSecond: 10,
+  caption: "Fiber Pass bridges Pico’s CKB payment to a sats payment over Lightning",
 };
 const ACTIVE_USAGE_TOTALS = {
   pico: { total: 1000, unit: "CKB" },
   luggage: { total: 5000, unit: "CKB", ratePerSecond: 0.1 },
-  massage: { total: 1000, unit: "USD", ratePerSecond: 0.1 },
+  massage: { total: 100000, unit: "sats", ratePerSecond: 10 },
 } as const;
 
 export function MultiServicePaymentRouteScene({
@@ -139,17 +142,26 @@ export function MultiServiceRouteDistributionBoard({
 }) {
   const config = routeVariant === "massage" ? massageRouteDistribution : luggageRouteDistribution;
 
-  return <RouteDistributionBoard config={config} progress={progress} isActive={isActive} />;
+  return (
+    <RouteDistributionBoard
+      config={config}
+      progress={progress}
+      isActive={isActive}
+      isLightningRoute={routeVariant === "massage"}
+    />
+  );
 }
 
 function RouteDistributionBoard({
   config,
   progress,
   isActive,
+  isLightningRoute,
 }: {
   config: RouteDistributionConfig;
   progress: number;
   isActive: boolean;
+  isLightningRoute: boolean;
 }) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
@@ -243,9 +255,12 @@ function RouteDistributionBoard({
           imageSrc="/chapter2/fiber-pass-avatar.png"
           imageAlt="Fiber Airport Pass avatar"
           name="Fiber Airport Pass"
-          meta="Supports: CKB, USD"
+          meta={fiberPassMeta}
         />
-        <RouteDistributionConnector label={config.targetChannelLabel} />
+        <RouteDistributionConnector
+          label={config.targetChannelLabel}
+          variant={isLightningRoute ? "lightning" : undefined}
+        />
         <RouteDistributionNode
           imageSrc={config.serviceAvatar}
           imageAlt={config.serviceAvatarAlt}
@@ -305,23 +320,25 @@ function RouteDistributionNode({
   imageSrc: string;
   imageAlt: string;
   name: string;
-  meta: string;
+  meta: ReactNode;
 }) {
   return (
     <div className={channelStyles.routeDistributionNode}>
       <NodeStatus />
       <BareAvatar imageSrc={imageSrc} imageAlt={imageAlt} />
       <p className={channelStyles.name}>{name}</p>
-      <p className={channelStyles.nodeMeta}>{meta}</p>
+      <p className={cx(channelStyles.nodeMeta, channelStyles.nodeMetaMultiline)}>{meta}</p>
     </div>
   );
 }
 
-function RouteDistributionConnector({ label }: { label: string }) {
+function RouteDistributionConnector({ label, variant }: { label: string; variant?: "lightning" }) {
   return (
     <div className={channelStyles.routeDistributionConnector}>
       <span className={channelStyles.routeDistributionLine} aria-hidden="true" />
-      <span className={channelStyles.routeDistributionPill}>{label}</span>
+      <span className={cx(channelStyles.routeDistributionPill, variant === "lightning" ? channelStyles.lightningRoutePill : undefined)}>
+        {label}
+      </span>
       <div className={channelStyles.channelStatus}>
         <span>Status:</span>
         <span className={channelStyles.statusDetail}>
@@ -414,16 +431,8 @@ export function MultiServiceChannelBoard({
   const isRouteScene = variant !== "opening";
   const isSettlementScene = variant === "settlement";
   const isActiveServicesScene = variant === "active-services";
-  const isPaymentRouteScene = isRouteScene && !isSettlementScene && !isActiveServicesScene;
   const isOpeningScene = variant === "opening";
   const usesSceneFiveLayout = isOpeningScene || isSettlementScene;
-  const isMassageRoute = variant === "massage-route";
-  const useStaticPlainConnectors = !isPaymentRouteScene;
-  const activeServiceKey: MultiServiceKey | null = isPaymentRouteScene
-    ? isMassageRoute
-      ? "massage"
-      : "luggage"
-    : null;
   const totalBeats = isSettlementScene ? MULTI_SERVICE_SETTLEMENT_SCENE_BEATS : MULTI_SERVICE_CHANNEL_SCENE_BEATS;
   const settlementCloseProgress = easeInOutSine(beatProgress(progress, 0, 1.2, MULTI_SERVICE_SETTLEMENT_SCENE_BEATS));
   const fillProgress = easeInOutSine(beatProgress(progress, 0, 1, totalBeats));
@@ -440,8 +449,8 @@ export function MultiServiceChannelBoard({
       ? "var(--color-status-active)"
       : "var(--color-status-opening)";
 
-  if (isActiveServicesScene && activeServices) {
-    return (
+  if (isActiveServicesScene) {
+    return activeServices ? (
       <ActiveUsageBoard
         activeServices={activeServices}
         onEndAllServices={() => {
@@ -450,46 +459,29 @@ export function MultiServiceChannelBoard({
         }}
         onEndHover={() => playCue("ui.pop")}
       />
-    );
+    ) : null;
   }
 
   return (
     <div
       className={cx(
         channelStyles.surface,
-        isActiveServicesScene ? channelStyles.activeServicesSurface : channelStyles.surfaceWithTitle,
+        channelStyles.surfaceWithTitle,
         usesSceneFiveLayout ? channelStyles.openingSurface : undefined,
-        isPaymentRouteScene && caption ? channelStyles.routeCaptionSurface : undefined,
       )}
     >
-      {isActiveServicesScene ? null : <h2 className={channelStyles.title}>Fiber Behind the Scenes</h2>}
+      <h2 className={channelStyles.title}>Fiber Behind the Scenes</h2>
 
       <div className={channelStyles.paymentGroup}>
         <div className={channelStyles.paymentRow}>
           <div className={channelStyles.paymentNodeStack}>
-            <NodeStatus
-              channelCountLabel={
-                usesSceneFiveLayout
-                  ? isSettlementScene
-                    ? closedShown
-                      ? "0 active channels"
-                      : "1 active channel"
-                    : activeShown
-                      ? "1 active channel"
-                      : "0 active channels"
-                  : undefined
-              }
-            />
+            <NodeStatus />
             <BareAvatar imageSrc="/shared/pico-avatar.png" imageAlt="Pico avatar" />
             <p className={channelStyles.name}>Pico</p>
             {usesSceneFiveLayout ? <p className={channelStyles.nodeMeta}>Asset: CKB</p> : null}
           </div>
 
           <div className={channelStyles.channelStack}>
-            {isActiveServicesScene && activeServices ? (
-              <ActiveServicesBalanceCard activeServices={activeServices} />
-            ) : null}
-
             <div className={channelStyles.channelWrap}>
               <div
                 className={channelStyles.picoConnector}
@@ -518,122 +510,48 @@ export function MultiServiceChannelBoard({
           </div>
 
           <div className={cx(channelStyles.paymentNodeStack, channelStyles.fiberPassStack)}>
-            <NodeStatus
-              channelCountLabel={
-                usesSceneFiveLayout
-                  ? isSettlementScene
-                    ? closedShown
-                      ? "2 active channels"
-                      : "3 active channels"
-                    : activeShown
-                      ? "3 active channels"
-                      : "2 active channels"
-                  : undefined
-              }
-            />
+            <NodeStatus />
             <BareAvatar imageSrc="/chapter2/fiber-pass-avatar.png" imageAlt="Fiber Airport Pass avatar" />
             <p className={channelStyles.passName}>Fiber Airport Pass</p>
-            {usesSceneFiveLayout ? <p className={channelStyles.nodeMeta}>Supports: CKB, USD</p> : null}
+            {usesSceneFiveLayout ? <p className={cx(channelStyles.nodeMeta, channelStyles.nodeMetaMultiline)}>{fiberPassMeta}</p> : null}
           </div>
         </div>
       </div>
 
       <div className={cx(channelStyles.services, isSettlementScene ? channelStyles.servicesSettled : undefined)}>
-        {isRouteScene && !isSettlementScene ? (
-          <div
-            className={cx(
-              channelStyles.serviceConnector,
-              channelStyles.routeConnectorTop,
-              activeServiceKey && activeServiceKey !== "luggage" ? channelStyles.dimmed : undefined,
-            )}
-            aria-hidden="true"
-          >
-            <span className={channelStyles.routeVertical} />
-            <span className={channelStyles.routeHorizontal} />
-            <span className={channelStyles.paymentPill}>Paying 0.1 CKB / sec</span>
-          </div>
-        ) : (
-          <div
-            className={cx(
-              channelStyles.serviceConnector,
-              channelStyles.connectorTop,
-              useStaticPlainConnectors ? channelStyles.staticConnector : undefined,
-            )}
-            aria-hidden="true"
-          >
-            {usesSceneFiveLayout ? <span className={channelStyles.paymentPill}>Luggage channel</span> : null}
-          </div>
-        )}
-
-        {isMassageRoute || isActiveServicesScene ? (
-          <div
-            className={cx(
-              channelStyles.serviceConnector,
-              channelStyles.routeConnectorBottom,
-              activeServiceKey && activeServiceKey !== "massage" ? channelStyles.dimmed : undefined,
-            )}
-            aria-hidden="true"
-          >
-            <span className={channelStyles.routeVertical} />
-            <span className={channelStyles.routeHorizontalBottom} />
-            <span className={cx(channelStyles.paymentPill, channelStyles.paymentPillBottom)}>Paying 0.1 USD</span>
-          </div>
-        ) : (
-          <div
-            className={cx(
-              channelStyles.serviceConnector,
-              channelStyles.connectorBottom,
-              isPaymentRouteScene ? channelStyles.dimmed : undefined,
-              (useStaticPlainConnectors || isPaymentRouteScene) ? channelStyles.staticConnector : undefined,
-            )}
-            aria-hidden="true"
-          >
-            {usesSceneFiveLayout ? <span className={cx(channelStyles.paymentPill, channelStyles.paymentPillBottom)}>Massage channel</span> : null}
-          </div>
-        )}
-
-        {multiServiceServices.map((service) => {
-          const isDimmed = activeServiceKey !== null && service.key !== activeServiceKey;
-
-          return (
-            <ServiceNode
-              key={service.key}
-              className={cx(
-                service.key === "luggage"
-                  ? channelStyles.serviceLuggage
-                  : channelStyles.serviceMassage,
-                isDimmed ? channelStyles.dimmed : undefined,
-              )}
-              imageSrc={service.imageSrc}
-              imageAlt={service.imageAlt}
-              name={service.name}
-              accepts={isActiveServicesScene ? service.rate : serviceAccepts[service.key]}
-              detail={
-                isActiveServicesScene && activeServices
-                  ? `Time: ${activeServices.serviceSeconds[service.key].toLocaleString("en-US")} sec`
-                  : undefined
-              }
-            />
-          );
-        })}
-      </div>
-      {isActiveServicesScene && activeServices ? (
-        <button
-          type="button"
-          className={channelStyles.endServicesButton}
-          onMouseEnter={() => playCue("ui.pop")}
-          onClick={() => {
-            playCue("system.shutdown");
-            activeServices.onEndAllServices();
-          }}
+        <div
+          className={cx(channelStyles.serviceConnector, channelStyles.connectorTop, channelStyles.staticConnector)}
+          aria-hidden="true"
         >
-          End all services
-        </button>
-      ) : null}
+          {usesSceneFiveLayout ? <span className={channelStyles.paymentPill}>Luggage channel</span> : null}
+        </div>
+
+        <div
+          className={cx(channelStyles.serviceConnector, channelStyles.connectorBottom, channelStyles.staticConnector)}
+          aria-hidden="true"
+        >
+          {usesSceneFiveLayout ? (
+            <span className={cx(channelStyles.paymentPill, channelStyles.paymentPillBottom, channelStyles.lightningRoutePill)}>
+              Massage (Lightning route)
+            </span>
+          ) : null}
+        </div>
+
+        {multiServiceServices.map((service) => (
+          <ServiceNode
+            key={service.key}
+            className={service.key === "luggage" ? channelStyles.serviceLuggage : channelStyles.serviceMassage}
+            imageSrc={service.imageSrc}
+            imageAlt={service.imageAlt}
+            name={service.name}
+            accepts={serviceAccepts[service.key]}
+          />
+        ))}
+      </div>
       {isSettlementScene ? (
-        <p className={channelStyles.sceneCaption}>Pico’s channel closes when the session ends. The other channels remain open.</p>
+        <p className={channelStyles.sceneCaption}>Pico channel closes when the session ends. Service routes remain available.</p>
       ) : isOpeningScene ? (
-        <p className={channelStyles.sceneCaption}>These services already have payment channels with Fiber Airport Pass.</p>
+        <p className={channelStyles.sceneCaption}>Fiber Airport Pass has routes and liquidity ready.</p>
       ) : caption ? (
         <p className={channelStyles.sceneCaption}>{caption}</p>
       ) : null}
@@ -660,8 +578,8 @@ function ActiveUsageBoard({
       <div className={channelStyles.activeUsageMain}>
         <div className={channelStyles.activeUsagePicoFiber}>
           <div className={channelStyles.activeUsageStatusRow}>
-            <NodeStatus channelCountLabel="1 active channel" />
-            <NodeStatus channelCountLabel="3 active channels" />
+            <NodeStatus />
+            <NodeStatus />
           </div>
           <div className={channelStyles.activeUsageChannelRow}>
             <div className={channelStyles.activeUsageNode}>
@@ -679,7 +597,7 @@ function ActiveUsageBoard({
             </div>
             <div className={channelStyles.activeUsageNodeMeta}>
               <p className={channelStyles.passName}>Fiber Airport Pass</p>
-              <p className={channelStyles.nodeMeta}>Supports: CKB, USD</p>
+              <p className={cx(channelStyles.nodeMeta, channelStyles.nodeMetaMultiline)}>{fiberPassMeta}</p>
             </div>
           </div>
         </div>
@@ -697,7 +615,7 @@ function ActiveUsageBoard({
           imageSrc="/chapter2/massage-avatar.png"
           imageAlt="Massage chair avatar"
           name="Massage chair"
-          accepts="Accept: USD"
+          accepts="Accept: sats"
           elapsedSeconds={massageSeconds}
         />
 
@@ -707,7 +625,7 @@ function ActiveUsageBoard({
         />
         <ActiveUsageServiceConnector
           className={channelStyles.activeUsageConnectorBottom}
-          label="Massage channel"
+          label="Massage (Lightning route)"
           inverted
         />
       </div>
@@ -728,7 +646,7 @@ function ActiveUsageBoard({
           unit={ACTIVE_USAGE_TOTALS.luggage.unit}
         />
         <ActiveUsageMeter
-          label="Massage channel distribution"
+          label="Sats route distribution"
           total={ACTIVE_USAGE_TOTALS.massage.total}
           remaining={ACTIVE_USAGE_TOTALS.massage.total - massagePaid}
           paid={massagePaid}
@@ -842,26 +760,6 @@ function ActiveUsageMeter({
         <span>
           {formatCkb(Math.min(total, paid))} {unit}
         </span>
-      </div>
-    </div>
-  );
-}
-
-function ActiveServicesBalanceCard({ activeServices }: { activeServices: ActiveServicesState }) {
-  const remainingPercent = (activeServices.remaining / activeServices.total) * 100;
-  const usedPercent = 100 - remainingPercent;
-
-  return (
-    <div className={cx(channelStyles.fundingWrap, channelStyles.activeBalanceWrap)}>
-      <p className={channelStyles.activeBalanceTitle}>Micropayments off-chain</p>
-      <div className={channelStyles.activeBalanceBar}>
-        <span className={channelStyles.activeBalanceRemaining} style={{ width: `${remainingPercent}%` }} />
-        <span className={channelStyles.activeBalanceUsed} style={{ width: `${usedPercent}%` }} />
-        <p className={channelStyles.activeBalanceTotal}>Total: {formatCkb(activeServices.total || MULTI_SERVICE_TOTAL_CKB)} CKB</p>
-      </div>
-      <div className={channelStyles.activeBalanceLabels}>
-        <span>{formatCkb(activeServices.remaining)} CKB</span>
-        <span>{formatCkb(activeServices.used)} CKB</span>
       </div>
     </div>
   );

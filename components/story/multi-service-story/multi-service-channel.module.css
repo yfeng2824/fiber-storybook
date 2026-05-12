@@ -58,43 +58,6 @@
   --graph-bottom-height: 60px;
 }
 
-.routeCaptionSurface {
-  --graph-title-shift: 40px;
-}
-
-.activeServicesSurface {
-  background: var(--color-bg-inverse);
-}
-
-.activeServicesSurface .nodeStatus,
-.activeServicesSurface .name,
-.activeServicesSurface .passName,
-.activeServicesSurface .channelStatus,
-.activeServicesSurface .serviceMeta,
-.activeServicesSurface .activeBalanceTitle,
-.activeServicesSurface .activeBalanceLabels {
-  color: var(--color-text-inverse);
-}
-
-.activeServicesSurface .nodeDot,
-.activeServicesSurface .statusDot {
-  border-color: var(--color-text-inverse);
-}
-
-.activeServicesSurface .picoConnector::before,
-.activeServicesSurface .routeHorizontal::before,
-.activeServicesSurface .routeHorizontalBottom::before {
-  background: repeating-linear-gradient(90deg, var(--color-text-inverse) 0 14px, transparent 14px 24px);
-}
-
-.activeServicesSurface .routeVertical::before {
-  background: repeating-linear-gradient(0deg, var(--color-text-inverse) 0 14px, transparent 14px 24px);
-}
-
-.activeServicesSurface .routeConnectorBottom .routeVertical::before {
-  background: repeating-linear-gradient(180deg, var(--color-text-inverse) 0 14px, transparent 14px 24px);
-}
-
 .title {
   position: absolute;
   left: 50%;
@@ -330,6 +293,15 @@
   white-space: nowrap;
 }
 
+.nodeMetaMultiline {
+  display: block;
+  width: max-content;
+  justify-self: center;
+  overflow: visible;
+  line-height: 1.08;
+  white-space: nowrap;
+}
+
 .name {
   width: var(--graph-node-size);
 }
@@ -427,10 +399,6 @@
   background: var(--color-text-primary);
   transform-origin: left center;
   pointer-events: none;
-}
-
-.dimmed {
-  opacity: 0.3;
 }
 
 .connectorHorizontal {
@@ -546,82 +514,6 @@
   animation: none;
 }
 
-.routeConnectorTop {
-  left: var(--graph-spine-left);
-  top: var(--graph-top-y);
-  width: var(--graph-route-width);
-  height: var(--graph-top-height);
-  background: transparent;
-  opacity: 1;
-}
-
-.routeConnectorBottom {
-  left: var(--graph-spine-left);
-  top: var(--graph-horizontal-y);
-  width: var(--graph-route-width);
-  height: var(--graph-bottom-height);
-  background: transparent;
-  opacity: 1;
-  z-index: 0;
-}
-
-.routeVertical,
-.routeHorizontal,
-.routeHorizontalBottom {
-  position: absolute;
-  display: block;
-  overflow: hidden;
-  background: transparent;
-}
-
-.routeVertical {
-  left: 0;
-  bottom: 0;
-  width: 4px;
-  height: 100%;
-  overflow: hidden;
-}
-
-.routeHorizontal,
-.routeHorizontalBottom {
-  left: 0;
-  width: 100%;
-  height: 4px;
-  overflow: hidden;
-}
-
-.routeHorizontal {
-  top: 0;
-}
-
-.routeHorizontalBottom {
-  bottom: 0;
-}
-
-.routeVertical::before,
-.routeHorizontal::before,
-.routeHorizontalBottom::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-}
-
-.routeVertical::before {
-  background: repeating-linear-gradient(0deg, var(--color-text-primary) 0 14px, transparent 14px 24px);
-  animation: routeVerticalFlow 1.2s linear infinite;
-}
-
-.routeConnectorBottom .routeVertical::before {
-  background: repeating-linear-gradient(180deg, var(--color-text-primary) 0 14px, transparent 14px 24px);
-  animation-name: routeVerticalFlowDown;
-}
-
-.routeHorizontal::before,
-.routeHorizontalBottom::before {
-  background: repeating-linear-gradient(90deg, var(--color-text-primary) 0 14px, transparent 14px 24px);
-  animation: routeHorizontalFlow 1.2s linear infinite;
-}
-
 .paymentPill {
   position: absolute;
   left: 50%;
@@ -656,85 +548,12 @@
   transform: translate(-50%, -50%);
 }
 
-.openingSurface .paymentPillBottom {
-  top: 100%;
-}
-
-.serviceConnector.dimmed {
-  opacity: 0.3;
-}
-
-.fundingWrap {
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 36px);
-  width: 320px;
-  z-index: 3;
-}
-
-.activeBalanceWrap {
-  bottom: calc(100% + 76px);
-  width: var(--graph-payment-width);
-  transform: translateX(-50%);
-  font-family: var(--font-chalk), var(--font-chalk-fallback);
-  color: var(--color-text-primary);
-}
-
-.activeBalanceTitle {
-  width: 100%;
-  margin: 0 0 20px;
-  font-size: 20px;
-  line-height: 1;
-  text-align: center;
-}
-
-.activeBalanceBar {
-  position: relative;
-  display: flex;
-  width: 100%;
-  height: 32px;
-  overflow: hidden;
-  border: 2px solid var(--color-text-primary);
-  border-radius: 999px;
-  background: var(--color-yellow-lighter);
-}
-
-.activeBalanceRemaining,
-.activeBalanceUsed {
-  display: block;
-  height: 100%;
-  transition: width 420ms ease;
-}
-
-.activeBalanceRemaining {
+.lightningRoutePill {
   background: var(--color-yellow-darker);
 }
 
-.activeBalanceUsed {
-  background: var(--color-yellow-lighter);
-}
-
-.activeBalanceTotal {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  margin: 0;
-  font-size: 16px;
-  line-height: 1;
-  text-align: center;
-  pointer-events: none;
-}
-
-.activeBalanceLabels {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  margin-top: 8px;
-  font-family: var(--font-chalk), var(--font-chalk-fallback);
-  font-size: 16px;
-  line-height: 1;
-  color: var(--color-text-primary);
+.openingSurface .paymentPillBottom {
+  top: 100%;
 }
 
 .activeUsageSurface {
@@ -1174,6 +993,7 @@
   justify-items: center;
   gap: 12px;
   width: 120px;
+  overflow: visible;
   flex: 0 0 auto;
 }
 
@@ -1328,27 +1148,6 @@
   }
 }
 
-@keyframes routeHorizontalPulse {
-  0% {
-    transform: translateX(-22%);
-    opacity: 0.18;
-  }
-
-  18% {
-    opacity: 0.72;
-  }
-
-  50% {
-    transform: translateX(0%);
-    opacity: 0.64;
-  }
-
-  100% {
-    transform: translateX(22%);
-    opacity: 0.18;
-  }
-}
-
 @keyframes routeVerticalFlow {
   0% {
     background-position: 0 0;
@@ -1366,27 +1165,6 @@
 
   100% {
     background-position: 0 32px;
-  }
-}
-
-@keyframes routeVerticalPulse {
-  0% {
-    transform: translateY(22%);
-    opacity: 0.18;
-  }
-
-  18% {
-    opacity: 0.72;
-  }
-
-  50% {
-    transform: translateY(0%);
-    opacity: 0.64;
-  }
-
-  100% {
-    transform: translateY(-22%);
-    opacity: 0.18;
   }
 }
 
@@ -1449,16 +1227,6 @@
     margin-top: 0;
   }
 
-  .fundingWrap {
-    position: relative;
-    left: auto;
-    bottom: auto;
-    width: min(100%, 320px);
-    transform: none !important;
-    order: -1;
-    margin-bottom: 18px;
-  }
-
   .channelWrap,
   .picoConnector {
     width: 100%;
@@ -1497,11 +1265,6 @@
     margin-top: 12px;
   }
 
-  .fundingWrap {
-    width: min(100%, 320px);
-    margin: 28px auto 0;
-  }
-
   .sceneCaption {
     position: relative;
     left: auto;
@@ -1511,14 +1274,6 @@
     transform: none;
     font-size: clamp(18px, 4.8vw, 22px);
     white-space: normal;
-  }
-
-  .activeBalanceWrap {
-    width: min(100%, 520px);
-  }
-
-  .activeBalanceTitle {
-    font-size: clamp(18px, 4.8vw, 20px);
   }
 
   .services {

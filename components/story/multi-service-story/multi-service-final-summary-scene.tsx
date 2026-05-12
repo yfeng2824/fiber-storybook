@@ -18,8 +18,9 @@ const FINAL_SUMMARY_TIMELINE_BEATS = 4;
 
 const SUMMARY_ROWS = multiServiceServices.map((service) => ({
   key: service.key,
-  label: service.name === "Luggage storage" ? "Luggage (CKB)" : "Massage (USD)",
+  label: service.name === "Luggage storage" ? "Luggage (CKB)" : "Massage (sats)",
 }));
+const CKB_TO_SATS = 10;
 const serviceCkbRates = multiServiceServices.reduce<Record<MultiServiceKey, number>>(
   (rates, service) => ({
     ...rates,
@@ -140,17 +141,21 @@ function AirportPassPhone({ settlement }: { settlement: MultiServiceSettlementSn
           {SUMMARY_ROWS.map((row) => {
             const seconds = settlement.serviceSeconds[row.key];
             const paid = seconds * serviceCkbRates[row.key];
+            const paidLabel =
+              row.key === "massage"
+                ? `${formatCkb(paid * CKB_TO_SATS)} sats`
+                : `${formatCkb(paid)} CKB`;
 
             return (
               <div key={row.key} className={styles.serviceRow}>
                 <span>{row.label}</span>
                 <span>{seconds.toLocaleString("en-US")} sec</span>
-                <span>{formatCkb(paid)} CKB</span>
+                <span>{paidLabel}</span>
               </div>
             );
           })}
         </div>
-        <p className={styles.conversionNote}>1 CKB ≈ 0.1 USD</p>
+        <p className={styles.conversionNote}>Demo rate: 1 CKB = 10 sats</p>
       </div>
     </PhoneSummaryPanel>
   );

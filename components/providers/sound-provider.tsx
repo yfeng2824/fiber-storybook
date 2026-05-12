@@ -323,6 +323,11 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      if (cue === "pod.door-close") {
+        playAudioCue("/sound/door-close.mp3", 0.5);
+        return;
+      }
+
       const now = context.currentTime;
       const gain = context.createGain();
       gain.connect(context.destination);

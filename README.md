@@ -25,12 +25,14 @@ This chapter demonstrates:
 
 ### Chapter 2: Airport Pass — One Connection, Multiple Services
 
-Pico wants several small airport services before boarding. Instead of approving each service separately, Pico opens one channel to a **Fiber Airport Pass**, then uses luggage storage and a USD-priced massage chair through routes the pass already supports.
+Pico wants several small airport services before boarding. Instead of approving each service separately, Pico opens one channel to a **Fiber Airport Pass**, then uses luggage storage and a massage chair through routes the pass already supports.
+
+In the story, Pico holds CKB. Luggage storage accepts CKB, while the massage chair accepts BTC-sats over a Lightning route. The Fiber Airport Pass acts as a hub node with service routes and liquidity on both sides: it receives Pico's CKB payment through the pass channel, bridges that value through its supported route, and lets the massage chair receive sats. For the demo math, the story uses a simple rate of **1 CKB = 10 sats**.
 
 This chapter demonstrates:
 
 - **One Fiber connection coordinating multiple services** — Pico approves one pass channel instead of opening a channel to every service
-- **Multi-asset routing** — Pico can pay from CKB while the massage chair receives USD
+- **Hub-assisted asset routing** — Pico can pay from CKB while the massage chair receives sats through a route the hub supports
 - **Unified settlement** — Pico's pass channel closes, paid usage is settled, and unused CKB is returned
 
 ---
@@ -81,7 +83,7 @@ fiber-storybook/
 | `components/story/fiber-storybook.tsx` | Top-level container: hero, chapters, sound, navigation, progress |
 | `lib/story-content/airport-nap.ts` | Chapter 1 scene definitions and copy |
 | `lib/story-content/multi-service.ts` | Chapter 2 scene definitions and copy |
-| `lib/story-content/multi-service-model.ts` | Chapter 2 payment totals, service durations, and CKB/USD conversion math |
+| `lib/story-content/multi-service-model.ts` | Chapter 2 payment totals, service durations, and CKB/sats demo conversion math |
 | `lib/story-content/types.ts` | Shared TypeScript types for scenes, chapters, and payment state |
 | `components/story/shared/` | Reusable primitives: scene shells, two-panel storyboards, motion helpers |
 

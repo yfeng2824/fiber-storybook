@@ -29,8 +29,8 @@ export const multiServiceServices = [
   {
     key: "massage",
     name: "Massage chair",
-    rate: "Rate: 0.1 USD / sec",
-    pill: "Paying 0.1 USD / sec",
+    rate: "Rate: 10 sats / sec",
+    pill: "Paying 10 sats / sec",
     ckbEquivalentPerSecond: 1,
     endSeconds: 633,
     startSeconds: 603,
