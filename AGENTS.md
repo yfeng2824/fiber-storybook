@@ -17,23 +17,12 @@
 - `public/` stores storyboards, avatars, icons, fonts, and sound assets. Prefer existing local assets before adding new ones.
 
 ## Chapter 2 Current Shape
-- Chapter 2 has 14 scenes. It no longer includes the power-bank service flow.
-- Current service topology is Pico -> Fiber Airport Pass -> luggage storage and massage chair.
-- Scene 5 is the source layout for the Chapter 2 topology board: Pico channel plus existing luggage/massage service channels. Scene 13 should follow this same board layout and only change the channel state/counts/caption.
-- Scenes 8 and 11 use the route distribution board layout, not the scene 5 topology board. Scene 8 routes to luggage; scene 11 routes to massage.
-- Scene 12 is the active usage board with a black inverse surface, live elapsed service times, three distribution meters, and the `End all services` action.
-- Scene 14 is the Fiber Airport Pass receipt summary and should consume the settlement snapshot produced by scene 12.
-- Keep Chapter 2 service nodes limited to luggage storage and massage chair unless a future task explicitly reintroduces another service.
-
-## Chapter 2 Payment Model
-- Chapter 2 payment constants live in `lib/story-content/multi-service-model.ts`.
-- Pico total is `1000 CKB`.
-- Scene 12 starts at `137 CKB` remaining and `863 CKB` paid, then auto-ends after 30 seconds at `104 CKB` remaining and `896 CKB` paid.
-- Luggage charges `0.1 CKB / sec`.
-- Massage charges `0.1 USD / sec`; use `10 CKB = 1 USD`, so massage drains Pico at `1 CKB / sec`.
-- While luggage and massage both run, Pico drains at `1.1 CKB / sec`.
-- Luggage elapsed time is `2600 -> 2630 sec`; massage elapsed time is `603 -> 633 sec`.
-- Settlement and receipt scenes must use the live snapshot if users click `End all services` early.
+- Chapter 2 focuses on a simplified Fiber Airport Pass flow: Pico opens one pass channel, then uses luggage storage and massage chair through service channels the pass already supports.
+- The power-bank flow and old power-bank assets are not part of the current chapter. Do not reintroduce them unless the task explicitly asks for it.
+- Scene 5 is the reusable topology-board reference for opening/closing channel states. Scene 13 should keep that same visual language unless a new Figma design says otherwise.
+- Scenes 8 and 11 use a route-distribution board. Scene 12 uses the active-usage board with live meters, elapsed service times, and the `End all services` action.
+- Scene 14 is the Fiber Airport Pass receipt summary and should consume the settlement snapshot produced by Scene 12.
+- Chapter 2 payment constants, service durations, and conversion assumptions live in `lib/story-content/multi-service-model.ts`. Update that source of truth instead of duplicating numbers in components or docs.
 
 ## Implementation Guidelines
 - Keep implementation files under 600 lines whenever reasonably possible.
@@ -66,11 +55,10 @@
 - Avoid negative-margin overlap hacks such as `margin-bottom: -100dvh`.
 
 ## Assets
-- Chapter 2 assets are currently numbered for the 14-scene flow in `public/chapter2/`.
-- Scene 2 uses `c2-storyboard-2-start.svg`, `c2-storyboard-2-mid.svg`, and `c2-storyboard-2-end.svg`.
-- Scene 10 uses the current massage assets: `c2-storyboard-10-left-start.svg`, `c2-storyboard-10-left-end.svg`, and `c2-storyboard-10-right.svg`.
-- Scene 14 uses `c2-storyboard-14-left-start.svg` and `c2-storyboard-14-left-end.svg` plus the rendered receipt panel.
-- Do not reference removed power-bank assets or deleted old scene numbers.
+- Chapter assets are stored under `public/chapter1/` and `public/chapter2/`.
+- Prefer existing local assets before adding new ones.
+- Keep asset references aligned with scene definitions in `lib/story-content/`.
+- Do not reference removed assets or deleted old scene numbers.
 
 ## Verification
 - Run `npm run typecheck` after code changes.
