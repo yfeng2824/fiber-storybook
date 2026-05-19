@@ -27,11 +27,12 @@ This chapter demonstrates:
 
 Pico wants several small airport services before boarding. Instead of approving each service separately, Pico opens one channel to a **Fiber Airport Pass**, then uses luggage storage and a massage chair through routes the pass already supports.
 
-In the story, Pico holds CKB. Luggage storage accepts CKB, while the massage chair accepts BTC-sats over a Lightning route. The Fiber Airport Pass acts as a hub node with service routes and liquidity on both sides: it receives Pico's CKB payment through the pass channel, bridges that value through its supported route, and lets the massage chair receive sats. For the demo math, the story uses a simple rate of **1 CKB = 10 sats**.
+In the story, Pico holds CKB. Pico funds only the Pico channel with the Fiber Airport Pass; the pass already provides liquidity for its service routes. Luggage storage accepts CKB, while the massage chair accepts BTC-sats over a Lightning route. The pass receives Pico's CKB payment, routes it through supported service liquidity, and lets the massage chair receive sats. For the demo math, the story uses a simple rate of **1 CKB = 10 sats**.
 
 This chapter demonstrates:
 
 - **One Fiber connection coordinating multiple services** — Pico approves one pass channel instead of opening a channel to every service
+- **Hub-provided service liquidity** — service routes are ready before Pico connects
 - **Hub-assisted asset routing** — Pico can pay from CKB while the massage chair receives sats through a route the hub supports
 - **Unified settlement** — Pico's pass channel closes, paid usage is settled, and unused CKB is returned
 

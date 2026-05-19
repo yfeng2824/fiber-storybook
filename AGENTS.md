@@ -19,8 +19,9 @@
 ## Chapter 2 Current Shape
 - Chapter 2 focuses on a simplified Fiber Airport Pass flow: Pico opens one pass channel, then uses luggage storage and massage chair through service routes the pass already supports.
 - The massage-chair route uses sats. Frame the Fiber Airport Pass as a hub node that supports CKB and sats routes; in demo math, use `1 CKB = 10 sats`.
+- Pico funds only the Pico channel. Service routes should be presented as already having hub-provided liquidity.
 - The power-bank flow and old power-bank assets are not part of the current chapter. Do not reintroduce them unless the task explicitly asks for it.
-- Scene 5 is the reusable topology-board reference for opening/closing channel states. Scene 13 should keep that same visual language unless a new Figma design says otherwise.
+- Scene 5 is the reusable topology-board reference for opening/closing channel states and progressively reveals service-route liquidity before Pico opens the Pico channel. Scene 13 should keep that same visual language unless a new Figma design says otherwise.
 - Scenes 8 and 11 use a route-distribution board. Scene 12 uses the active-usage board with live meters, elapsed service times, and the `End all services` action.
 - Scene 14 is the Fiber Airport Pass receipt summary and should consume the settlement snapshot produced by Scene 12.
 - Chapter 2 payment constants, service durations, and conversion assumptions live in `lib/story-content/multi-service-model.ts`. Update that source of truth instead of duplicating numbers in components or docs.

@@ -6,7 +6,7 @@ const sceneBeatCounts = {
   chapter2Scene2: 5,
   chapter2Scene3: 4,
   chapter2Scene4: 4,
-  chapter2Scene5: 3,
+  chapter2Scene5: 5,
   chapter2Scene6: 4,
   chapter2Scene7: 4,
   chapter2Scene8: 4,
