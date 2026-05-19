@@ -86,6 +86,10 @@
   width: 100%;
 }
 
+.openingSurface .paymentRow {
+  align-items: flex-start;
+}
+
 .paymentNodeStack {
   display: grid;
   grid-template-columns: var(--graph-node-size);
@@ -95,6 +99,9 @@
   width: var(--graph-node-size);
   overflow: visible;
   flex: 0 0 auto;
+  transition:
+    opacity 260ms ease,
+    transform 260ms ease;
 }
 
 .paymentNodeStack > * {
@@ -195,6 +202,13 @@
   width: var(--graph-payment-gap-width);
   margin-top: 31px;
   flex: 0 0 auto;
+  transition:
+    opacity 260ms ease,
+    transform 260ms ease;
+}
+
+.openingSurface .channelStack {
+  margin-top: 70px;
 }
 
 .picoConnector {
@@ -220,6 +234,10 @@
 .picoConnector::before {
   background: repeating-linear-gradient(90deg, var(--color-text-primary) 0 14px, transparent 14px 24px);
   animation: routeHorizontalFlow 1.2s linear infinite;
+}
+
+.openingSurface .picoConnector {
+  margin-top: 16px;
 }
 
 .channel {
@@ -324,6 +342,7 @@
   line-height: 1;
   color: var(--color-text-primary);
   white-space: nowrap;
+  transition: opacity 240ms ease;
 }
 
 .statusDetail {
@@ -538,6 +557,7 @@
 
 .openingSurface .paymentPill {
   top: 0;
+  width: 236px;
   min-height: 36px;
   padding: 8px 14px;
 }
@@ -554,6 +574,90 @@
 
 .openingSurface .paymentPillBottom {
   top: 100%;
+}
+
+.serviceRouteStatus {
+  position: absolute;
+  left: 50%;
+  top: 30px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  transform: translateX(-50%);
+  font-family: var(--font-chalk), var(--font-chalk-fallback);
+  font-size: 20px;
+  line-height: 1;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.serviceRouteStatusBottom {
+  top: calc(100% + 30px);
+}
+
+.picoLiquidityLabel,
+.routeLiquidityLabel,
+.routeLiquidityAmount {
+  position: absolute;
+  z-index: 4;
+  display: block;
+  margin: 0;
+  font-family: var(--font-chalk), var(--font-chalk-fallback);
+  line-height: 1;
+  color: var(--color-text-primary);
+  text-align: center;
+  white-space: nowrap;
+  transition:
+    opacity 240ms ease,
+    transform 240ms ease;
+  pointer-events: none;
+}
+
+.picoLiquidityLabel {
+  left: 50%;
+  top: -28px;
+  font-size: 20px;
+  transform: translateX(-50%);
+}
+
+.routeLiquidityLabel {
+  left: 50%;
+  top: -48px;
+  font-size: 20px;
+  transform: translateX(-50%);
+}
+
+.routeLiquidityAmount {
+  top: 28px;
+  font-size: 20px;
+}
+
+.routeLiquidityStart {
+  left: 34px;
+}
+
+.routeLiquidityEnd {
+  right: 32px;
+}
+
+.picoLiquidityStart {
+  left: 42px;
+  top: 56px;
+}
+
+.picoLiquidityEnd {
+  right: 42px;
+  top: 56px;
+}
+
+.connectorBottom .routeLiquidityLabel {
+  top: 12px;
+}
+
+.connectorBottom .routeLiquidityAmount {
+  top: 88px;
 }
 
 .activeUsageSurface {
@@ -974,6 +1078,19 @@
   width: 100%;
   font-size: 16px;
   white-space: nowrap;
+}
+
+.distributionEndpoint {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  min-width: 0;
+  text-align: left;
+}
+
+.distributionEndpointEnd {
+  justify-items: end;
+  text-align: right;
 }
 
 .routeDistributionRow {

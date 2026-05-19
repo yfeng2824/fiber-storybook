@@ -11,12 +11,30 @@ import { BareAvatar, NodeStatus, ServiceNode } from "./multi-service-channel-nod
 import channelStyles from "./multi-service-channel.module.css";
 import storyStyles from "./multi-service-story.module.css";
 
-const MULTI_SERVICE_CHANNEL_SCENE_BEATS = 3;
+const MULTI_SERVICE_CHANNEL_SCENE_BEATS = 5;
 const MULTI_SERVICE_SETTLEMENT_SCENE_BEATS = 4;
 const ROUTE_DISTRIBUTION_TICK_MS = 1000;
+const OPENING_SCENE_TIMING = {
+  serviceLiquidityExitStart: 1.2,
+  serviceLiquidityExitDuration: 0.45,
+  picoRevealStart: 1.35,
+  picoRevealDuration: 0.65,
+  channelFillStart: 2.05,
+  channelFillDuration: 0.8,
+  activeStatusStart: 2.85,
+  activeStatusDuration: 0.45,
+  channelActiveCue: 3.05,
+  channelActiveCueReset: 2.6,
+  finalLiquidityStart: 4,
+  finalLiquidityDuration: 0.5,
+} as const;
 
 type PaymentRouteVariant = "luggage" | "massage";
 type ChannelBoardVariant = "opening" | "settlement" | "active-services";
+type DistributionEndpointLabels = {
+  left: string;
+  right: string;
+};
 type RouteDistributionConfig = {
   serviceName: string;
   serviceAvatar: string;
@@ -28,12 +46,14 @@ type RouteDistributionConfig = {
   sourceUnit: string;
   sourceInitialPaid: number;
   sourceRatePerSecond: number;
+  sourceEndpointLabels: DistributionEndpointLabels;
   targetDistributionLabel: string;
   targetChannelLabel: string;
   targetTotal: number;
   targetUnit: string;
   targetInitialPaid: number;
   targetRatePerSecond: number;
+  targetEndpointLabels: DistributionEndpointLabels;
   caption: string;
 };
 type ActiveServicesState = {
@@ -54,6 +74,18 @@ const fiberPassMeta = (
     Supports CKB & sats
   </>
 );
+const picoToFiberEndpointLabels = {
+  left: "Pico",
+  right: "Fiber Pass",
+} satisfies DistributionEndpointLabels;
+const fiberToLuggageEndpointLabels = {
+  left: "Fiber Pass",
+  right: "Luggage",
+} satisfies DistributionEndpointLabels;
+const fiberToMassageEndpointLabels = {
+  left: "Fiber Pass",
+  right: "Massage",
+} satisfies DistributionEndpointLabels;
 const luggageRouteDistribution: RouteDistributionConfig = {
   serviceName: "Luggage storage",
   serviceAvatar: "/chapter2/luggage-avatar.png",
@@ -65,12 +97,14 @@ const luggageRouteDistribution: RouteDistributionConfig = {
   sourceUnit: "CKB",
   sourceInitialPaid: 0,
   sourceRatePerSecond: 0.1,
+  sourceEndpointLabels: picoToFiberEndpointLabels,
   targetDistributionLabel: "Luggage channel distribution",
   targetChannelLabel: "Luggage channel",
   targetTotal: 5000,
   targetUnit: "CKB",
   targetInitialPaid: 0,
   targetRatePerSecond: 0.1,
+  targetEndpointLabels: fiberToLuggageEndpointLabels,
   caption: "Fiber Airport Pass now routes payment to the luggage storage service.",
 };
 const massageRouteDistribution: RouteDistributionConfig = {
@@ -84,12 +118,14 @@ const massageRouteDistribution: RouteDistributionConfig = {
   sourceUnit: "CKB",
   sourceInitialPaid: 200,
   sourceRatePerSecond: 1.1,
+  sourceEndpointLabels: picoToFiberEndpointLabels,
   targetDistributionLabel: "Sats route distribution",
   targetChannelLabel: "Massage (Lightning route)",
   targetTotal: 100000,
   targetUnit: "sats",
   targetInitialPaid: 0,
   targetRatePerSecond: 10,
+  targetEndpointLabels: fiberToMassageEndpointLabels,
   caption: "Fiber Pass bridges Pico’s CKB payment to a sats payment over Lightning",
 };
 const ACTIVE_USAGE_TOTALS = {
@@ -234,12 +270,14 @@ function RouteDistributionBoard({
           total={config.sourceTotal}
           paid={sourcePaid}
           unit={config.sourceUnit}
+          endpointLabels={config.sourceEndpointLabels}
         />
         <RouteDistributionMeter
           label={config.targetDistributionLabel}
           total={config.targetTotal}
           paid={targetPaid}
           unit={config.targetUnit}
+          endpointLabels={config.targetEndpointLabels}
         />
       </div>
 
@@ -279,11 +317,13 @@ function RouteDistributionMeter({
   total,
   paid,
   unit,
+  endpointLabels,
 }: {
   label: string;
   total: number;
   paid: number;
   unit: string;
+  endpointLabels: DistributionEndpointLabels;
 }) {
   const remaining = Math.max(0, total - paid);
   const paidPercent = Math.min(100, (paid / total) * 100);
@@ -299,14 +339,37 @@ function RouteDistributionMeter({
           Total: {formatCkb(total)} {unit}
         </span>
       </div>
-      <div className={channelStyles.routeDistributionValues}>
-        <span>
-          {formatCkb(remaining)} {unit}
-        </span>
-        <span>
-          {formatCkb(paid)} {unit}
-        </span>
-      </div>
+      <DistributionEndpointValues
+        className={channelStyles.routeDistributionValues}
+        leftValue={`${formatCkb(remaining)} ${unit}`}
+        rightValue={`${formatCkb(paid)} ${unit}`}
+        labels={endpointLabels}
+      />
+    </div>
+  );
+}
+
+function DistributionEndpointValues({
+  className,
+  leftValue,
+  rightValue,
+  labels,
+}: {
+  className: string;
+  leftValue: string;
+  rightValue: string;
+  labels: DistributionEndpointLabels;
+}) {
+  return (
+    <div className={className}>
+      <span className={channelStyles.distributionEndpoint}>
+        <span>{leftValue}</span>
+        <span>{labels.left}</span>
+      </span>
+      <span className={cx(channelStyles.distributionEndpoint, channelStyles.distributionEndpointEnd)}>
+        <span>{rightValue}</span>
+        <span>{labels.right}</span>
+      </span>
     </div>
   );
 }
@@ -371,8 +434,8 @@ export function MultiServiceChannelScene({
           <CueWatcher
             progress={progress}
             cue="system.channel-active"
-            threshold={progressAtBeat(2, MULTI_SERVICE_CHANNEL_SCENE_BEATS)}
-            resetThreshold={progressAtBeat(1.5, MULTI_SERVICE_CHANNEL_SCENE_BEATS)}
+            threshold={progressAtBeat(OPENING_SCENE_TIMING.channelActiveCue, MULTI_SERVICE_CHANNEL_SCENE_BEATS)}
+            resetThreshold={progressAtBeat(OPENING_SCENE_TIMING.channelActiveCueReset, MULTI_SERVICE_CHANNEL_SCENE_BEATS)}
           />
           <MultiServiceChannelBoard progress={progress} />
         </div>
@@ -435,11 +498,45 @@ export function MultiServiceChannelBoard({
   const usesSceneFiveLayout = isOpeningScene || isSettlementScene;
   const totalBeats = isSettlementScene ? MULTI_SERVICE_SETTLEMENT_SCENE_BEATS : MULTI_SERVICE_CHANNEL_SCENE_BEATS;
   const settlementCloseProgress = easeInOutSine(beatProgress(progress, 0, 1.2, MULTI_SERVICE_SETTLEMENT_SCENE_BEATS));
-  const fillProgress = easeInOutSine(beatProgress(progress, 0, 1, totalBeats));
-  const activeReveal = easeInOutSine(beatProgress(progress, 1, 1, totalBeats));
+  const fillProgress = easeInOutSine(
+    beatProgress(
+      progress,
+      isOpeningScene ? OPENING_SCENE_TIMING.channelFillStart : 0,
+      isOpeningScene ? OPENING_SCENE_TIMING.channelFillDuration : 1,
+      totalBeats,
+    ),
+  );
+  const activeReveal = easeInOutSine(
+    beatProgress(
+      progress,
+      isOpeningScene ? OPENING_SCENE_TIMING.activeStatusStart : 1,
+      isOpeningScene ? OPENING_SCENE_TIMING.activeStatusDuration : 1,
+      totalBeats,
+    ),
+  );
+  const picoReveal = isOpeningScene
+    ? easeInOutSine(beatProgress(progress, OPENING_SCENE_TIMING.picoRevealStart, OPENING_SCENE_TIMING.picoRevealDuration, totalBeats))
+    : 1;
+  const serviceLiquidityIntro = isOpeningScene
+    ? 1 -
+      easeInOutSine(
+        beatProgress(
+          progress,
+          OPENING_SCENE_TIMING.serviceLiquidityExitStart,
+          OPENING_SCENE_TIMING.serviceLiquidityExitDuration,
+          totalBeats,
+        ),
+      )
+    : 0;
+  const finalLiquidityReveal = isOpeningScene
+    ? easeInOutSine(
+        beatProgress(progress, OPENING_SCENE_TIMING.finalLiquidityStart, OPENING_SCENE_TIMING.finalLiquidityDuration, totalBeats),
+      )
+    : 0;
+  const serviceLiquidityOpacity = Math.max(serviceLiquidityIntro, finalLiquidityReveal);
   const activeShown = isRouteScene || activeReveal > 0.5;
   const closedShown = isSettlementScene && settlementCloseProgress > 0.72;
-  const channelFill = isSettlementScene ? 65 * (1 - settlementCloseProgress) : isRouteScene ? 100 : 65 + fillProgress * 35;
+  const channelFill = isSettlementScene ? 65 * (1 - settlementCloseProgress) : isRouteScene ? 100 : isOpeningScene ? fillProgress * 100 : 65 + fillProgress * 35;
   const statusLabel = isSettlementScene ? (closedShown ? "Closed" : "Closing") : activeShown ? "Active" : "Opening";
   const statusColor = isSettlementScene
     ? closedShown
@@ -448,6 +545,29 @@ export function MultiServiceChannelBoard({
     : activeShown
       ? "var(--color-status-active)"
       : "var(--color-status-opening)";
+  const picoSideStyle = isOpeningScene
+    ? ({
+        opacity: picoReveal,
+        transform: `translateY(${(1 - picoReveal) * 8}px)`,
+        pointerEvents: picoReveal > 0.98 ? "auto" : "none",
+      } as CSSProperties)
+    : undefined;
+  const serviceLiquidityStyle = isOpeningScene
+    ? ({
+        opacity: serviceLiquidityOpacity,
+      } as CSSProperties)
+    : undefined;
+  const picoLiquidityStyle = isOpeningScene
+    ? ({
+        opacity: finalLiquidityReveal,
+      } as CSSProperties)
+    : undefined;
+  const channelStatusStyle = isOpeningScene
+    ? ({
+        opacity: 1 - finalLiquidityReveal,
+      } as CSSProperties)
+    : undefined;
+  const openingCaption = getOpeningCaption({ progress, finalLiquidityReveal, totalBeats });
 
   if (isActiveServicesScene) {
     return activeServices ? (
@@ -470,24 +590,37 @@ export function MultiServiceChannelBoard({
         usesSceneFiveLayout ? channelStyles.openingSurface : undefined,
       )}
     >
-      <h2 className={channelStyles.title}>Fiber Behind the Scenes</h2>
+      <h2 className={channelStyles.title}>{isOpeningScene ? "Fiber Behind the Scene" : "Fiber Behind the Scenes"}</h2>
 
       <div className={channelStyles.paymentGroup}>
         <div className={channelStyles.paymentRow}>
-          <div className={channelStyles.paymentNodeStack}>
+          <div className={channelStyles.paymentNodeStack} style={picoSideStyle}>
             <NodeStatus />
             <BareAvatar imageSrc="/shared/pico-avatar.png" imageAlt="Pico avatar" />
             <p className={channelStyles.name}>Pico</p>
             {usesSceneFiveLayout ? <p className={channelStyles.nodeMeta}>Asset: CKB</p> : null}
           </div>
 
-          <div className={channelStyles.channelStack}>
+          <div className={channelStyles.channelStack} style={picoSideStyle}>
             <div className={channelStyles.channelWrap}>
               <div
                 className={channelStyles.picoConnector}
                 aria-hidden="true"
                 style={{ opacity: isSettlementScene && closedShown ? 0 : 1 }}
               />
+              {isOpeningScene ? (
+                <>
+                  <span className={channelStyles.picoLiquidityLabel} style={picoLiquidityStyle}>
+                    Pico-funded liquidity
+                  </span>
+                  <span className={cx(channelStyles.routeLiquidityAmount, channelStyles.picoLiquidityStart)} style={picoLiquidityStyle}>
+                    1,000 CKB
+                  </span>
+                  <span className={cx(channelStyles.routeLiquidityAmount, channelStyles.picoLiquidityEnd)} style={picoLiquidityStyle}>
+                    0 CKB
+                  </span>
+                </>
+              ) : null}
               <div className={channelStyles.channel}>
                 <div
                   className={cx(channelStyles.channelFill, isSettlementScene ? channelStyles.channelFillClosing : undefined)}
@@ -497,7 +630,7 @@ export function MultiServiceChannelBoard({
               </div>
             </div>
 
-            <div className={channelStyles.channelStatus}>
+            <div className={channelStyles.channelStatus} style={channelStatusStyle}>
               <span>Status:</span>
               <span className={channelStyles.statusDetail}>
                 <span
@@ -524,6 +657,15 @@ export function MultiServiceChannelBoard({
           aria-hidden="true"
         >
           {usesSceneFiveLayout ? <span className={channelStyles.paymentPill}>Luggage channel</span> : null}
+          {isSettlementScene ? <ServiceRouteStatus /> : null}
+          {isOpeningScene ? (
+            <ServiceRouteLiquidity
+              label="Hub-provided liquidity"
+              startAmount="5,000 CKB"
+              endAmount="0 CKB"
+              style={serviceLiquidityStyle}
+            />
+          ) : null}
         </div>
 
         <div
@@ -534,6 +676,15 @@ export function MultiServiceChannelBoard({
             <span className={cx(channelStyles.paymentPill, channelStyles.paymentPillBottom, channelStyles.lightningRoutePill)}>
               Massage (Lightning route)
             </span>
+          ) : null}
+          {isSettlementScene ? <ServiceRouteStatus position="bottom" /> : null}
+          {isOpeningScene ? (
+            <ServiceRouteLiquidity
+              label="Hub-provided liquidity"
+              startAmount="100,000 sats"
+              endAmount="0 sats"
+              style={serviceLiquidityStyle}
+            />
           ) : null}
         </div>
 
@@ -551,11 +702,76 @@ export function MultiServiceChannelBoard({
       {isSettlementScene ? (
         <p className={channelStyles.sceneCaption}>Pico channel closes when the session ends. Service routes remain available.</p>
       ) : isOpeningScene ? (
-        <p className={channelStyles.sceneCaption}>Fiber Airport Pass has routes and liquidity ready.</p>
+        <p className={channelStyles.sceneCaption}>{openingCaption}</p>
       ) : caption ? (
         <p className={channelStyles.sceneCaption}>{caption}</p>
       ) : null}
     </div>
+  );
+}
+
+function ServiceRouteStatus({ position = "top" }: { position?: "top" | "bottom" }) {
+  return (
+    <div className={cx(channelStyles.serviceRouteStatus, position === "bottom" ? channelStyles.serviceRouteStatusBottom : undefined)}>
+      <span>Status:</span>
+      <span className={channelStyles.statusDetail}>
+        <span className={channelStyles.statusDot} style={{ background: "var(--color-status-active)" }} />
+        Active
+      </span>
+    </div>
+  );
+}
+
+function getOpeningCaption({
+  progress,
+  finalLiquidityReveal,
+  totalBeats,
+}: {
+  progress: number;
+  finalLiquidityReveal: number;
+  totalBeats: number;
+}) {
+  if (finalLiquidityReveal > 0.5) {
+    return "Pico funds only the Pico channel. The service routes already have hub-provided liquidity.";
+  }
+
+  if (
+    beatProgress(
+      progress,
+      OPENING_SCENE_TIMING.picoRevealStart,
+      OPENING_SCENE_TIMING.picoRevealDuration,
+      totalBeats,
+    ) > 0.2
+  ) {
+    return "The Pico channel opens with 1,000 CKB from Pico.";
+  }
+
+  return "Before Pico connects, Fiber Airport Pass already provides liquidity for the service routes.";
+}
+
+function ServiceRouteLiquidity({
+  label,
+  startAmount,
+  endAmount,
+  style,
+}: {
+  label: string;
+  startAmount: string;
+  endAmount: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <>
+      <span className={channelStyles.routeLiquidityLabel} style={style}>
+        {label}
+      </span>
+      <span className={cx(channelStyles.routeLiquidityAmount, channelStyles.routeLiquidityStart)} style={style}>
+        {startAmount}
+      </span>
+      <span className={cx(channelStyles.routeLiquidityAmount, channelStyles.routeLiquidityEnd)} style={style}>
+        {endAmount}
+      </span>
+    </>
   );
 }
 
@@ -627,6 +843,7 @@ function ActiveUsageBoard({
           className={channelStyles.activeUsageConnectorBottom}
           label="Massage (Lightning route)"
           inverted
+          variant="lightning"
         />
       </div>
 
@@ -637,6 +854,7 @@ function ActiveUsageBoard({
           remaining={activeServices.remaining}
           paid={activeServices.used}
           unit={ACTIVE_USAGE_TOTALS.pico.unit}
+          endpointLabels={picoToFiberEndpointLabels}
         />
         <ActiveUsageMeter
           label="Luggage channel distribution"
@@ -644,6 +862,7 @@ function ActiveUsageBoard({
           remaining={ACTIVE_USAGE_TOTALS.luggage.total - luggagePaid}
           paid={luggagePaid}
           unit={ACTIVE_USAGE_TOTALS.luggage.unit}
+          endpointLabels={fiberToLuggageEndpointLabels}
         />
         <ActiveUsageMeter
           label="Sats route distribution"
@@ -651,6 +870,7 @@ function ActiveUsageBoard({
           remaining={ACTIVE_USAGE_TOTALS.massage.total - massagePaid}
           paid={massagePaid}
           unit={ACTIVE_USAGE_TOTALS.massage.unit}
+          endpointLabels={fiberToMassageEndpointLabels}
         />
       </div>
 
@@ -686,15 +906,19 @@ function ActiveUsageServiceConnector({
   className,
   label,
   inverted,
+  variant,
 }: {
   className: string;
   label: string;
   inverted?: boolean;
+  variant?: "lightning";
 }) {
   return (
     <div className={cx(channelStyles.activeUsageServiceConnector, className)} aria-hidden="true">
       <span className={cx(channelStyles.activeUsageServiceCorner, inverted ? channelStyles.activeUsageServiceCornerInverted : undefined)} />
-      <span className={channelStyles.activeUsagePill}>{label}</span>
+      <span className={cx(channelStyles.activeUsagePill, variant === "lightning" ? channelStyles.lightningRoutePill : undefined)}>
+        {label}
+      </span>
     </div>
   );
 }
@@ -733,12 +957,14 @@ function ActiveUsageMeter({
   remaining,
   paid,
   unit,
+  endpointLabels,
 }: {
   label: string;
   total: number;
   remaining: number;
   paid: number;
   unit: string;
+  endpointLabels: DistributionEndpointLabels;
 }) {
   const paidPercent = Math.min(100, Math.max(0, (paid / total) * 100));
 
@@ -753,14 +979,12 @@ function ActiveUsageMeter({
           Total: {formatCkb(total)} {unit}
         </span>
       </div>
-      <div className={channelStyles.activeUsageValues}>
-        <span>
-          {formatCkb(Math.max(0, remaining))} {unit}
-        </span>
-        <span>
-          {formatCkb(Math.min(total, paid))} {unit}
-        </span>
-      </div>
+      <DistributionEndpointValues
+        className={channelStyles.activeUsageValues}
+        leftValue={`${formatCkb(Math.max(0, remaining))} ${unit}`}
+        rightValue={`${formatCkb(Math.min(total, paid))} ${unit}`}
+        labels={endpointLabels}
+      />
     </div>
   );
 }
